@@ -88,8 +88,8 @@
           <div id="xp-bar" style="height: 100%; background: gold; width: 100%; transition: width 0.3s ease;"></div>
         </div>
         <div>
-          <button onclick="updateLevel(-1)">-</button>
-          <button onclick="updateHealth(1)">+</button>
+          <button onclick="updateFractionalLevel(-1)">-</button>
+          <button onclick="updateFractionalLevel(1)">+</button>
         </div>
     </div>
     <img id="levelup-overlay" src="LevelUp.png" alt="LevelUp" style="
@@ -132,7 +132,7 @@
 
     function renderLevel() {
       const total = (bragiLevel + bragiFractionalLevel / 10).toFixed(1);
-      document.getElementById('level-display').innerText = `Level ${total} /10`;
+      document.getElementById('level').innerText = `Level ${total} /10`;
 
       // Update XP Bar
       const percent = Math.min(100, (bragiFractionalLevel / 10) * 100);
