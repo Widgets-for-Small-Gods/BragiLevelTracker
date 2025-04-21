@@ -18,13 +18,13 @@
       position: relative;
       width: 100%;
       max-width: 400px;
-      background-image: url('HealthFrame.png'); /* Reuse the frame image */
+      background-image: url('HealthFrame.png');
       background-size: 100% 100%;
       background-repeat: no-repeat;
       background-position: center;
       font-size: clamp(14px, 2vw, 20px);
       overflow: hidden;
-      padding-bottom: 100%; /* Square frame */
+      padding-bottom: 100%;
     }
 
     .content {
@@ -50,7 +50,22 @@
 
     #level-display {
       font-size: 2em;
-      margin-bottom: 1em;
+      margin-bottom: 0.5em;
+    }
+
+    .xp-bar-container {
+      height: 1.2em;
+      border-radius: 0.6em;
+      background: #ddd;
+      margin: 0.5em 0 1em;
+      overflow: hidden;
+    }
+
+    .xp-bar {
+      height: 100%;
+      background: gold;
+      width: 0%;
+      transition: width 0.3s ease;
     }
 
     button {
@@ -74,6 +89,12 @@
     <div class="content">
       <h1>Level</h1>
       <div id="level-display">Loading...</div>
+
+      <!-- Golden XP Bar -->
+      <div class="xp-bar-container">
+        <div id="xp-bar" class="xp-bar"></div>
+      </div>
+
       <div>
         <button onclick="updateFractionalLevel(-1)">−</button>
         <button onclick="updateFractionalLevel(1)">+</button>
@@ -109,6 +130,10 @@
     function renderLevel() {
       const total = (bragiLevel + bragiFractionalLevel / 10).toFixed(1);
       document.getElementById('level-display').innerText = `Level ${total} /10`;
+
+      // Update XP Bar
+      const percent = Math.min(100, (bragiFractionalLevel / 10) * 100);
+      document.getElementById('xp-bar').style.width = `${percent}%`;
     }
 
     async function updateFractionalLevel(change) {
