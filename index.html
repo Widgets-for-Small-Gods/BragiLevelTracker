@@ -103,7 +103,7 @@
       width: 60%;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.5s ease;
+      transition: opacity 1s ease;
       z-index: 5;
     ">
   </div>
@@ -143,12 +143,16 @@
 
     
     async function updateFractionalLevel(change) {
-      // Update local values
-      bragiFractionalLevel += change;
+      // remember old fractional so we can detect a level-up
+      const prevFrac = bragiFractionalLevel;
     
+      // apply change + carry logic
+      bragiFractionalLevel += change;
+      let didLevelUp = false;
       if (bragiFractionalLevel >= 10) {
         bragiLevel += 1;
         bragiFractionalLevel = 0;
+        didLevelUp = true;
       } else if (bragiFractionalLevel < 0) {
         if (bragiLevel > 0) {
           bragiLevel -= 1;
@@ -160,16 +164,22 @@
     
       renderLevel();
     
-      // Fetch existing full data from the bin
+      // flash the overlay if we just leveled up
+      if (didLevelUp) {
+        const overlay = document.getElementById('levelup-overlay');
+        overlay.style.opacity = 1;
+        // after a pause, fade it back out
+        setTimeout(() => {
+          overlay.style.opacity = 0;
+        }, 800); // show for 0.8s before fading
+      }
+    
+      // merge-and-PUT the full record
       const res = await fetch(`${baseUrl}/latest`, { headers });
       const data = await res.json();
       const fullRecord = data.record;
-    
-      // Update just the level-related values
       fullRecord.bragi_level = bragiLevel;
       fullRecord.bragi_fractional_level = bragiFractionalLevel;
-    
-      // Put the updated full record back
       await fetch(baseUrl, {
         method: 'PUT',
         headers,
