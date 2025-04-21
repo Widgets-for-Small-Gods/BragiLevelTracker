@@ -5,7 +5,7 @@
   <title>Bragi's Level Tracker</title>
   <style>
     body {
-      background-color: #ffffff;
+      background-color: #ffffff; /* changed from #111 */
       font-family: 'Georgia', serif;
       display: flex;
       justify-content: center;
@@ -24,9 +24,9 @@
       background-position: center;
       font-size: clamp(14px, 2vw, 20px);
       overflow: hidden;
-      padding-bottom: 100%;
+      padding-bottom: 100%; /* This keeps the container square but flexible */
     }
-
+            
     .content {
       position: absolute;
       top: 10%;
@@ -40,69 +40,72 @@
       text-align: center;
       font-size: clamp(14px, 1.2vw, 18px);
       color: #222;
-      overflow: auto;
+      overflow: auto; /* Allow content to grow if necessary */
     }
-
+        
     .content h1 {
       font-size: 2em;
+      margin-top: 0.5em;
       margin-bottom: 0.5em;
     }
-
-    #level-display {
+    
+    #level {
       font-size: 2em;
-      margin-bottom: 0.5em;
-    }
-
-    .xp-bar-container {
-      height: 1.2em;
-      border-radius: 0.6em;
-      background: #ddd;
-      margin: 0.5em 0 1em;
-      overflow: hidden;
-    }
-
-    .xp-bar {
-      height: 100%;
-      background: gold;
-      width: 0%;
-      transition: width 0.3s ease;
     }
 
     button {
       background: #333;
       color: white;
       border: 1px solid #666;
-      font-size: 1em;
-      padding: 0.5em 1em;
+      font-size: 0.8em;
+      padding: 0.4em 0.8em;
       margin: 0.3em;
       cursor: pointer;
       border-radius: 5px;
     }
-
-    button:hover {
-      background: #555;
-    }
+    
+  .xp-bar-container {
+    height: 1.8em;
+    border-radius: 0.8em;
+    margin: 0.5em 10% 1em 10%
+  }
+      
+  button:hover {
+    background: #555;
+  }
   </style>
 </head>
 <body>
   <div class="frame-container">
     <div class="content">
       <h1>Level</h1>
-      <div id="level-display">Loading...</div>
-
-      <!-- Golden XP Bar -->
-      <div class="xp-bar-container">
-        <div id="xp-bar" class="xp-bar"></div>
-      </div>
-
-      <div>
-        <button onclick="updateFractionalLevel(-1)">−</button>
-        <button onclick="updateFractionalLevel(1)">+</button>
-      </div>
+        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1em;">
+          <div style="display: flex; align-items: center; gap: 0.5em;">
+            <div id="level" style="font-size: 2em;">Loading...</div>
+          </div>
+        </div>
+        <div class="xp-bar-container" style="background: #ddd; overflow: hidden;">
+          <div id="xp-bar" style="height: 100%; background: gold; width: 100%; transition: width 0.3s ease;"></div>
+        </div>
+        <div>
+          <button onclick="updateLevel(-1)">-</button>
+          <button onclick="updateHealth(1)">+</button>
+        </div>
     </div>
+    <img id="levelup-overlay" src="LevelUp.png" alt="LevelUp" style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 5;
+    ">
   </div>
 
-  <script>
+    <script>
     const binId = '6804eef68960c979a589342b';
     const apiKey = '$2a$10$8TH7O/Zi1by5brUwAQ1sHuhni1xdi8MIG/A.mxonUfTPkihZXCCZ.';
     const baseUrl = `https://api.jsonbin.io/v3/b/${binId}`;
