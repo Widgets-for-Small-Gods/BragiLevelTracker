@@ -81,7 +81,10 @@
       <h1>Level</h1>
         <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1em;">
           <div style="display: flex; align-items: center; gap: 0.5em;">
-            <div id="level" style="font-size: 2em;">Loading...</div>
+            <div id="level" style="font-size: 2em;">
+              <strong id="level-whole">0</strong>
+              <span id="level-fraction">/10</span>
+            </div>
           </div>
         </div>
         <div class="xp-bar-container" style="background: #ddd; overflow: hidden;">
@@ -129,12 +132,11 @@
         document.getElementById('level-display').innerText = 'Error loading level.';
       }
     }
-
+    
     function renderLevel() {
-      const total = (bragiLevel + bragiFractionalLevel / 10).toFixed(1);
-      document.getElementById('level').innerText = `Level ${total} /10`;
-
-      // Update XP Bar
+      document.getElementById('level-whole').innerText = bragiLevel;
+      document.getElementById('level-fraction').innerText = ` ${bragiFractionalLevel}/10`;
+    
       const percent = Math.min(100, (bragiFractionalLevel / 10) * 100);
       document.getElementById('xp-bar').style.width = `${percent}%`;
     }
