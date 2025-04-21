@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bragi's Level Tracker</title>
+  <style>
+    body {
+      background-color: #ffffff;
+      font-family: 'Georgia', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .frame-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      background-image: url('HealthFrame.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+      font-size: clamp(14px, 2vw, 20px);
+      overflow: hidden;
+      padding-bottom: 100%;
+    }
+
+    .content {
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      right: 10%;
+      bottom: 10%;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      font-size: clamp(14px, 1.2vw, 18px);
+      color: #222;
+      overflow: auto;
+    }
+
+    .content h1 {
+      font-size: 2em;
+      margin-bottom: 0.5em;
+    }
+
+    #level-display {
+      font-size: 2em;
+      margin-bottom: 1em;
+    }
+
+    button {
+      background: #333;
+      color: white;
+      border: 1px solid #666;
+      font-size: 1em;
+      padding: 0.5em 1em;
+      margin: 0.3em;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame-container">
+    <div class="content">
+      <h1>Level</h1>
+      <div id="level-display">Loading...</div>
+      <div>
+        <button onclick="updateFractionalLevel(-1)">−</button>
+        <button onclick="updateFractionalLevel(1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const binId = '6804eef68960c979a589342b';
+    const apiKey = '$2a$10$8TH7O/Zi1by5brUwAQ1sHuhni1xdi8MIG/A.mxonUfTPkihZXCCZ.';
+    const baseUrl = `https://api.jsonbin.io/v3/b/${binId}`;
+    const headers = {
+      'X-Master-Key': apiKey,
+      'Content-Type': 'application/json'
+    };
+
+    let bragiLevel = 0;
+    let bragiFractionalLevel = 0;
+
+    async function fetchLevel() {
+      try {
+        const res = await fetch(`${baseUrl}/latest`, { headers });
+        const data = await res.json();
+        bragiLevel = data.record.bragi_level;
+        bragiFractionalLevel = data.record.bragi_fractional_level;
+        renderLevel();
+      } catch (err) {
+        console.error('Error fetching level:', err);
+        document.getElementById('level-display').innerText = 'Error loading level.';
+      }
+    }
+
+    function renderLevel() {
+      const total = (bragiLevel + bragiFractionalLevel / 10).toFixed(1);
+      document.getElementById('level-display').innerText = `Level ${total} /10`;
+    }
+
+    async function updateFractionalLevel(change) {
+      bragiFractionalLevel += change;
+
+      if (bragiFractionalLevel >= 10) {
+        bragiLevel += 1;
+        bragiFractionalLevel = 0;
+      } else if (bragiFractionalLevel < 0) {
+        if (bragiLevel > 0) {
+          bragiLevel -= 1;
+          bragiFractionalLevel = 9;
+        } else {
+          bragiFractionalLevel = 0;
+        }
+      }
+
+      renderLevel();
+
+      await fetch(baseUrl, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          bragi_level: bragiLevel,
+          bragi_fractional_level: bragiFractionalLevel
+        })
+      });
+    }
+
+    fetchLevel();
+  </script>
+</body>
+</html>
