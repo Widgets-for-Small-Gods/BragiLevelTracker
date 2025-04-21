@@ -136,9 +136,11 @@
       document.getElementById('xp-bar').style.width = `${percent}%`;
     }
 
+    
     async function updateFractionalLevel(change) {
+      // Update local values
       bragiFractionalLevel += change;
-
+    
       if (bragiFractionalLevel >= 10) {
         bragiLevel += 1;
         bragiFractionalLevel = 0;
@@ -150,19 +152,26 @@
           bragiFractionalLevel = 0;
         }
       }
-
+    
       renderLevel();
-
+    
+      // Fetch existing full data from the bin
+      const res = await fetch(`${baseUrl}/latest`, { headers });
+      const data = await res.json();
+      const fullRecord = data.record;
+    
+      // Update just the level-related values
+      fullRecord.bragi_level = bragiLevel;
+      fullRecord.bragi_fractional_level = bragiFractionalLevel;
+    
+      // Put the updated full record back
       await fetch(baseUrl, {
         method: 'PUT',
         headers,
-        body: JSON.stringify({
-          bragi_level: bragiLevel,
-          bragi_fractional_level: bragiFractionalLevel
-        })
+        body: JSON.stringify(fullRecord)
       });
     }
-
+    
     fetchLevel();
   </script>
 </body>
