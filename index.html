@@ -113,7 +113,7 @@
     ">
   </div>
 
-  <script type="module">
+<script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
     // --- Supabase config ---
@@ -128,14 +128,14 @@
     const xpBar = document.getElementById("xp-bar");
     const levelupOverlay = document.getElementById("levelup-overlay");
 
-    let bragiLevel = 0;
-    let bragiFractionalLevel = 0;
+    let level = 0;
+    let fractional_level = 0;
 
     // Load data from Supabase
     async function loadData() {
       const { data, error } = await supabase
         .from('widgets')
-        .select('bragi_level, bragi_fractional_level')
+        .select('level, fractional_level')
         .eq('id', WIDGET_ID)
         .single();
 
@@ -144,8 +144,8 @@
         return;
       }
 
-      bragiLevel = data.bragi_level;
-      bragiFractionalLevel = data.bragi_fractional_level;
+      level = data.level;
+      fractional_level = data.fractional_level;
       renderLevel();
     }
 
@@ -154,8 +154,8 @@
       const { error } = await supabase
         .from('widgets')
         .update({
-          bragi_level: bragiLevel,
-          bragi_fractional_level: bragiFractionalLevel
+          level: level,
+          fractional_level: fractional_level
         })
         .eq('id', WIDGET_ID);
 
@@ -163,31 +163,29 @@
     }
 
     function renderLevel() {
-      levelWholeEl.textContent = bragiLevel;
-      levelFractionEl.textContent = bragiFractionalLevel;
+      levelWholeEl.textContent = level;
+      levelFractionEl.textContent = fractional_level;
 
-      const percent = Math.min(100, (bragiFractionalLevel / 10) * 100);
+      const percent = Math.min(100, (fractional_level / 10) * 100);
       xpBar.style.width = `${percent}%`;
     }
 
     async function updateFractionalLevel(change) {
-      const prevFraction = bragiFractionalLevel;
       let didLevelUp = false;
 
-      // Add or subtract progress
-      bragiFractionalLevel += change;
+      fractional_level += change;
 
-      // Carry over logic
-      if (bragiFractionalLevel >= 10) {
-        bragiLevel += 1;
-        bragiFractionalLevel = 0;
+      // Handle overflow and underflow
+      if (fractional_level >= 10) {
+        level += 1;
+        fractional_level = 0;
         didLevelUp = true;
-      } else if (bragiFractionalLevel < 0) {
-        if (bragiLevel > 0) {
-          bragiLevel -= 1;
-          bragiFractionalLevel = 9;
+      } else if (fractional_level < 0) {
+        if (level > 0) {
+          level -= 1;
+          fractional_level = 9;
         } else {
-          bragiFractionalLevel = 0;
+          fractional_level = 0;
         }
       }
 
@@ -205,7 +203,7 @@
     // Initialize
     loadData();
 
-    // Expose button functions
+    // Expose button functions globally
     window.updateFractionalLevel = updateFractionalLevel;
   </script>
 </body>
