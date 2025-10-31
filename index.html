@@ -5,7 +5,7 @@
   <title>Bragi's Level Tracker</title>
   <style>
     body {
-      background-color: #ffffff; /* changed from #111 */
+      background-color: #ffffff;
       font-family: 'Georgia', serif;
       display: flex;
       justify-content: center;
@@ -24,7 +24,7 @@
       background-position: center;
       font-size: clamp(14px, 2vw, 20px);
       overflow: hidden;
-      padding-bottom: 100%; /* This keeps the container square but flexible */
+      padding-bottom: 100%;
     }
             
     .content {
@@ -40,7 +40,7 @@
       text-align: center;
       font-size: clamp(14px, 1.2vw, 18px);
       color: #222;
-      overflow: auto; /* Allow content to grow if necessary */
+      overflow: auto;
     }
         
     .content h1 {
@@ -64,38 +64,42 @@
       border-radius: 5px;
     }
     
-  .xp-bar-container {
-    height: 1.5em;
-    border-radius: 0.8em;
-    margin: 0.5em 10% 1em 10%
-  }
+    .xp-bar-container {
+      height: 1.5em;
+      border-radius: 0.8em;
+      margin: 0.5em 10% 1em 10%;
+      background: #ddd;
+      overflow: hidden;
+    }
       
-  button:hover {
-    background: #555;
-  }
+    button:hover {
+      background: #555;
+    }
   </style>
 </head>
 <body>
   <div class="frame-container">
     <div class="content">
-      <h1>
-        Level <strong id="level-whole">0</strong>
-      </h1>
-        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1em;">
-          <div style="display: flex; align-items: center; gap: 0.5em;">
-            <div id="fraction-display" style="font-size: 1.5em">
-              Progress <span id="level-fraction">5</span>/10
-            </div>
+      <h1>Level <strong id="level-whole">0</strong></h1>
+
+      <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1em;">
+        <div style="display: flex; align-items: center; gap: 0.5em;">
+          <div id="fraction-display" style="font-size: 1.5em">
+            Progress <span id="level-fraction">0</span>/10
           </div>
         </div>
-        <div class="xp-bar-container" style="background: #ddd; overflow: hidden;">
-          <div id="xp-bar" style="height: 100%; background: gold; width: 100%; transition: width 0.3s ease;"></div>
-        </div>
-        <div>
-          <button onclick="updateFractionalLevel(-1)">-</button>
-          <button onclick="updateFractionalLevel(1)">+</button>
-        </div>
+      </div>
+
+      <div class="xp-bar-container">
+        <div id="xp-bar" style="height: 100%; background: gold; width: 100%; transition: width 0.3s ease;"></div>
+      </div>
+
+      <div>
+        <button onclick="updateFractionalLevel(-1)">-</button>
+        <button onclick="updateFractionalLevel(1)">+</button>
+      </div>
     </div>
+
     <img id="levelup-overlay" src="LevelUp.png" alt="LevelUp" style="
       position: absolute;
       top: 50%;
@@ -109,51 +113,71 @@
     ">
   </div>
 
-    <script>
-    const binId = '6804eef68960c979a589342b';
-    const apiKey = '$2a$10$8TH7O/Zi1by5brUwAQ1sHuhni1xdi8MIG/A.mxonUfTPkihZXCCZ.';
-    const baseUrl = `https://api.jsonbin.io/v3/b/${binId}`;
-    const headers = {
-      'X-Master-Key': apiKey,
-      'Content-Type': 'application/json'
-    };
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // --- Supabase config ---
+    const SUPABASE_URL = 'https://emrsydwvrmwrnyrotgdl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtcnN5ZHd2cm13cm55cm90Z2RsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MjUxNjUsImV4cCI6MjA3NzQwMTE2NX0.7xiMRkxH72DTTzOR_CdtCXqSJXyg7pNbu4jh4zhjGSs';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // --- Widget setup ---
+    const WIDGET_ID = 'bragi';
+    const levelWholeEl = document.getElementById("level-whole");
+    const levelFractionEl = document.getElementById("level-fraction");
+    const xpBar = document.getElementById("xp-bar");
+    const levelupOverlay = document.getElementById("levelup-overlay");
 
     let bragiLevel = 0;
     let bragiFractionalLevel = 0;
 
-    async function fetchLevel() {
-      try {
-        const res = await fetch(`${baseUrl}/latest`, { headers });
-        const data = await res.json();
-        bragiLevel = data.record.bragi_level;
-        bragiFractionalLevel = data.record.bragi_fractional_level;
-        renderLevel();
-      } catch (err) {
-        console.error('Error fetching level:', err);
-        document.getElementById('level-display').innerText = 'Error loading level.';
+    // Load data from Supabase
+    async function loadData() {
+      const { data, error } = await supabase
+        .from('widgets')
+        .select('bragi_level, bragi_fractional_level')
+        .eq('id', WIDGET_ID)
+        .single();
+
+      if (error) {
+        console.error('Error loading level data:', error);
+        return;
       }
-    }
-    
-    function renderLevel() {
-      // Whole level next to the heading
-      document.getElementById('level-whole').innerText = bragiLevel;
-    
-      // Fractional progress text
-      document.getElementById('level-fraction').innerText = bragiFractionalLevel;
-    
-      // XP-bar width
-      const percent = Math.min(100, (bragiFractionalLevel / 10) * 100);
-      document.getElementById('xp-bar').style.width = `${percent}%`;
+
+      bragiLevel = data.bragi_level;
+      bragiFractionalLevel = data.bragi_fractional_level;
+      renderLevel();
     }
 
-    
+    // Save data to Supabase
+    async function saveData() {
+      const { error } = await supabase
+        .from('widgets')
+        .update({
+          bragi_level: bragiLevel,
+          bragi_fractional_level: bragiFractionalLevel
+        })
+        .eq('id', WIDGET_ID);
+
+      if (error) console.error('Error saving level data:', error);
+    }
+
+    function renderLevel() {
+      levelWholeEl.textContent = bragiLevel;
+      levelFractionEl.textContent = bragiFractionalLevel;
+
+      const percent = Math.min(100, (bragiFractionalLevel / 10) * 100);
+      xpBar.style.width = `${percent}%`;
+    }
+
     async function updateFractionalLevel(change) {
-      // remember old fractional so we can detect a level-up
-      const prevFrac = bragiFractionalLevel;
-    
-      // apply change + carry logic
-      bragiFractionalLevel += change;
+      const prevFraction = bragiFractionalLevel;
       let didLevelUp = false;
+
+      // Add or subtract progress
+      bragiFractionalLevel += change;
+
+      // Carry over logic
       if (bragiFractionalLevel >= 10) {
         bragiLevel += 1;
         bragiFractionalLevel = 0;
@@ -166,33 +190,23 @@
           bragiFractionalLevel = 0;
         }
       }
-    
+
       renderLevel();
-    
-      // flash the overlay if we just leveled up
+      saveData();
+
       if (didLevelUp) {
-        const overlay = document.getElementById('levelup-overlay');
-        overlay.style.opacity = 1;
-        // after a pause, fade it back out
+        levelupOverlay.style.opacity = 1;
         setTimeout(() => {
-          overlay.style.opacity = 0;
-        }, 800); // show for 0.8s before fading
+          levelupOverlay.style.opacity = 0;
+        }, 800);
       }
-    
-      // merge-and-PUT the full record
-      const res = await fetch(`${baseUrl}/latest`, { headers });
-      const data = await res.json();
-      const fullRecord = data.record;
-      fullRecord.bragi_level = bragiLevel;
-      fullRecord.bragi_fractional_level = bragiFractionalLevel;
-      await fetch(baseUrl, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(fullRecord)
-      });
     }
-    
-    fetchLevel();
+
+    // Initialize
+    loadData();
+
+    // Expose button functions
+    window.updateFractionalLevel = updateFractionalLevel;
   </script>
 </body>
 </html>
